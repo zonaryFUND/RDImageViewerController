@@ -240,6 +240,11 @@ static CGFloat kDefaultMaximumZoomScale = 2.5;
 	[pagingView_ scrollAtPage:pageIndex];
 }
 
+- (void)reloadViewAtIndex:(NSInteger)index
+{
+    [pagingView_ loadViewAtIndex:index];
+}
+
 #pragma mark -
 
 - (void)setShowPageNumberHud:(BOOL)showPageNumberHud

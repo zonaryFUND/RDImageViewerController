@@ -61,5 +61,6 @@ typedef NS_ENUM(NSInteger, RDPagingViewMovingDirection) {
 - (void)scrollAtPage:(NSInteger)page;
 - (UIView *)dequeueViewWithReuseIdentifier:(NSString *)identifier;
 - (void)resizeWithFrame:(CGRect)frame duration:(NSTimeInterval)duration;
+- (void)loadViewAtIndex:(NSInteger)index;
 
 @end
