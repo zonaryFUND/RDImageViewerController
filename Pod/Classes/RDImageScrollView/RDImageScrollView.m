@@ -10,82 +10,9 @@
 
 static CGSize kZoomRect = {100, 100};
 
-@implementation UIImage (RDImageView)
-
-- (CGSize)rd_scaledSize:(CGSize)size
-{
-	CGSize newSize = CGSizeZero;
-	CGFloat scale = size.width / self.size.width;
-	newSize = CGSizeMake(self.size.width * scale, self.size.height * scale);
-	
-	return newSize;
-}
-
-@end
-
-@interface RDImageView : UIImageView
-
-@property (nonatomic, readonly) BOOL alreadyLoaded;
-
-- (instancetype)initWithFrame:(CGRect)frame filename:(NSString *)filename;
-
-@end
-
-@interface RDImageView ()
-
-@property (nonatomic, strong) NSString *imageName;
-
-@end
-
-@implementation RDImageView
-
-- (instancetype)initWithFrame:(CGRect)frame filename:(NSString *)filename
-{
-	self = [super initWithFrame:frame];
-	if (self) {
-		self.imageName = filename;
-	}
-	
-	return self;
-}
-
-- (void)setImage:(UIImage *)image
-{
-	_alreadyLoaded = YES;
-	[super setImage:image];
-}
-
-- (void)drawRect:(CGRect)rect
-{
-	if (self.image == nil) {
-		[self loadImage];
-	}
-	
-	[super drawRect:rect];
-}
-
-#pragma mark -
-
-- (void)setImageWithFilename:(NSString *)filename
-{
-	_alreadyLoaded = NO;
-	self.imageName = filename;
-	self.image = nil;
-}
-
-- (void)loadImage
-{
-	if (_alreadyLoaded == NO) {
-		_alreadyLoaded = YES;
-		self.image = [UIImage imageNamed:self.imageName];
-	}
-}
-
-@end
-
 @implementation RDImageScrollView
 {
-	RDImageView *imageView_;
+	UIImageView *imageView_;
 	UITapGestureRecognizer *zoomGesture_;
 	UIActivityIndicatorView *indicator_;
 }
@@ -94,20 +21,22 @@ static CGSize kZoomRect = {100, 100};
 {
 	self = [super initWithFrame:frame];
 	if (self) {
+		self.mode = RDImageScrollViewResizeModeAspectFit;
+		
 		self.delegate = self;
 		self.showsHorizontalScrollIndicator = NO;
 		self.showsVerticalScrollIndicator = NO;
 		
-		imageView_ = [[RDImageView alloc] initWithFrame:CGRectMake(0, 0, frame.size.width, frame.size.height)];
-		imageView_.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+		imageView_ = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, frame.size.width, frame.size.height)];
 		imageView_.center = CGPointMake(CGRectGetWidth(self.frame) / 2, CGRectGetHeight(self.frame) / 2);
+		imageView_.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleBottomMargin;
 		imageView_.layer.borderColor = [UIColor blackColor].CGColor;
 		imageView_.layer.borderWidth = 1.0;
-		imageView_.contentMode = UIViewContentModeScaleAspectFit;
 		[self addSubview:imageView_];
 		
 		indicator_ = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhite];
 		indicator_.center = imageView_.center;
+		indicator_.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleBottomMargin;
 		[indicator_ startAnimating];
 		[self addSubview:indicator_];
 		
@@ -134,45 +63,59 @@ static CGSize kZoomRect = {100, 100};
 	else {
 		[indicator_ stopAnimating];
 	}
+	[self adjustContentAspect];
+}
+
+- (void)setMode:(RDImageScrollViewResizeMode)mode
+{
+	_mode = mode;
+	[self adjustContentAspect];
 }
 
 #pragma mark -
 
-- (void)setImageFrame:(CGRect)frame
+- (void)adjustContentAspect
 {
-	imageView_.frame = frame;
+	switch (_mode) {
+		case RDImageScrollViewResizeModeAspectFit:
+			[self setImageSizeAsAspectFit];
+			break;
+		case RDImageScrollViewResizeModeDisplayFit:
+			[self setImageSizeAsDisplayFit];
+			break;
+		default:
+			break;
+	}
+	[self setContentOffset:CGPointMake(0, 0)];
 }
 
-- (void)setImageSizeAspectFit
+- (void)setImageSizeAsAspectFit
 {
-	CGRect frame = imageView_.frame;
-	CGSize size = [imageView_.image rd_scaledSize:frame.size];
-	CGFloat scale = 0;
-	if (size.width > 0 && size.height > 0) {
-		scale = size.height > CGRectGetHeight(self.frame) ? CGRectGetHeight(self.frame) / size.height : CGRectGetWidth(self.frame) / size.width;
-	}
-	imageView_.bounds = CGRectMake(0, 0, size.width * scale, size.height * scale);
+	[imageView_ sizeToFit];
+	CGFloat height = CGRectGetHeight(self.frame);
+	CGFloat width = CGRectGetWidth(self.frame);
+	CGFloat scale = width < height ? width / MAX(CGRectGetWidth(imageView_.frame), 1) : height / MAX(CGRectGetHeight(imageView_.frame), 1);
+	imageView_.frame = CGRectMake(0, 0, CGRectGetWidth(imageView_.frame) * scale , CGRectGetHeight(imageView_.frame) * scale);
 	imageView_.center = CGPointMake(CGRectGetWidth(self.frame) / 2, CGRectGetHeight(self.frame) / 2);
-	self.contentSize = CGSizeMake(size.width * scale, size.height * scale);
+	self.contentSize = imageView_.frame.size;
 	[self setZoomScale:1.0];
 }
 
-- (void)setImageSizeDisplayFit
+- (void)setImageSizeAsDisplayFit
 {
-	CGRect frame = imageView_.frame;
-	CGSize size = [imageView_.image rd_scaledSize:frame.size];
-	CGFloat scale = 0;
-	if (size.width > 0 && size.height > 0) {
-		scale = size.width < CGRectGetWidth(self.frame) ? CGRectGetHeight(self.frame) / size.height : CGRectGetWidth(self.frame) / size.width;
+	[imageView_ sizeToFit];
+	CGFloat height = CGRectGetHeight(self.frame);
+	CGFloat width = CGRectGetWidth(self.frame);
+	if (height > width) {
+		// when devicec orientation is portrait
+		[self setImageSizeAsAspectFit];
 	}
-	imageView_.frame = CGRectMake(0, 0, size.width * scale, size.height * scale);
-	self.contentSize = CGSizeMake(size.width * scale, size.height * scale);
-	[self setZoomScale:1.0];
-}
-
-- (void)setImageSize:(CGSize)size
-{
-	imageView_.bounds = CGRectMake(0, 0, size.width, size.height);
+	else {
+		CGFloat scale = width > height ? width / MAX(CGRectGetWidth(imageView_.frame), 1) : height / MAX(CGRectGetHeight(imageView_.frame), 1);
+		imageView_.frame = CGRectMake(0, 0, CGRectGetWidth(imageView_.frame) * scale , CGRectGetHeight(imageView_.frame) * scale);
+		self.contentSize = imageView_.frame.size;
+		[self setZoomScale:1.0];
+	}
 }
 
 - (void)zoomeImageView:(UIGestureRecognizer *)gesture

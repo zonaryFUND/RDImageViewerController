@@ -9,6 +9,8 @@
 #import "RDViewController.h"
 #import "RDImageViewerController.h"
 
+const NSInteger kPreloadCount = 1;
+
 @interface RDViewController ()
 {
 	NSMutableArray *array;
@@ -48,7 +50,7 @@
 
 #pragma mark -
 
-- (IBAction)showImageViewControllerAspectFit:(id)sender
+- (IBAction)showImageAsAspectFit:(id)sender
 {
 	RDImageViewerController *viewController = [[RDImageViewerController alloc] initWithImageHandler:^UIImage *(NSInteger pageIndex) {
 		NSString *imageName = [NSString stringWithFormat:@"%ld.JPG", (long)pageIndex + 1];
@@ -56,14 +58,13 @@
 	} numberOfImages:10 direction:self.directionSwitch.on ? RDPagingViewDirectionLeft : RDPagingViewDirectionRight];
 	viewController.showSlider = sliderSwitch.on;
 	viewController.showPageNumberHud = hudSwitch.on;
-	viewController.landscapeMode = RDImageViewerControllerLandscapeModeAspectFit;
-	viewController.preloadCount = 1;
-	viewController.pageIndex = 5;
+	viewController.landscapeMode = RDImageScrollViewResizeModeAspectFit;
+	viewController.preloadCount = kPreloadCount;
 	viewController.hidesBottomBarWhenPushed = YES;
 	[self.navigationController pushViewController:viewController animated:YES];
 }
 
-- (IBAction)showImageViewControllerDisplayFit:(id)sender
+- (IBAction)showImageAsDisplayFit:(id)sender
 {
 	RDImageViewerController *viewController = [[RDImageViewerController alloc] initWithImageHandler:^UIImage *(NSInteger pageIndex) {
 		NSString *imageName = [NSString stringWithFormat:@"%ld.JPG", (long)pageIndex + 1];
@@ -71,13 +72,13 @@
 	} numberOfImages:10 direction:self.directionSwitch.on ? RDPagingViewDirectionLeft : RDPagingViewDirectionRight];
 	viewController.showSlider = sliderSwitch.on;
 	viewController.showPageNumberHud = hudSwitch.on;
-	viewController.landscapeMode = RDImageViewerControllerLandscapeModeDisplayFit;
-	viewController.preloadCount = 1;
+	viewController.landscapeMode = RDImageScrollViewResizeModeDisplayFit;
+	viewController.preloadCount = kPreloadCount;
 	viewController.hidesBottomBarWhenPushed = YES;
 	[self.navigationController pushViewController:viewController animated:YES];
 }
 
-- (IBAction)showViewController:(id)sender
+- (IBAction)showView:(id)sender
 {
 	CGRect frame = self.view.bounds;
 	RDImageViewerController *viewController = [[RDImageViewerController alloc] initWithViewHandler:^UIView *(NSInteger pageIndex, UIView *reusedView) {
@@ -102,13 +103,13 @@
 	} numberOfImages:10 direction:self.directionSwitch.on ? RDPagingViewDirectionLeft : RDPagingViewDirectionRight];
 	viewController.showSlider = sliderSwitch.on;
 	viewController.showPageNumberHud = hudSwitch.on;
-	viewController.landscapeMode = RDImageViewerControllerLandscapeModeDisplayFit;
-	viewController.preloadCount = 1;
+	viewController.landscapeMode = RDImageScrollViewResizeModeDisplayFit;
+	viewController.preloadCount = kPreloadCount;
 	viewController.hidesBottomBarWhenPushed = YES;
 	[self.navigationController pushViewController:viewController animated:YES];
 }
 
-- (IBAction)showAsyncImageViewController:(id)sender
+- (IBAction)showImageAsync:(id)sender
 {
 	RDImageViewerController *viewController = [[RDImageViewerController alloc] initWithImageHandler:^UIImage *(NSInteger pageIndex) {
 		NSLog(@"downloading...:%@", [array[pageIndex] absoluteString]);
@@ -127,9 +128,9 @@
 	} numberOfImages:10 direction:self.directionSwitch.on ? RDPagingViewDirectionLeft : RDPagingViewDirectionRight];
 	viewController.showSlider = sliderSwitch.on;
 	viewController.showPageNumberHud = hudSwitch.on;
-	viewController.landscapeMode = RDImageViewerControllerLandscapeModeAspectFit;
+	viewController.landscapeMode = RDImageScrollViewResizeModeAspectFit;
 	viewController.loadAsync = YES;
-	viewController.preloadCount = 1;
+	viewController.preloadCount = kPreloadCount;
 	[self.navigationController pushViewController:viewController animated:YES];
 }
 
@@ -179,13 +180,44 @@
 	
 	viewController.showSlider = sliderSwitch.on;
 	viewController.showPageNumberHud = hudSwitch.on;
-	viewController.landscapeMode = RDImageViewerControllerLandscapeModeAspectFit;
+	viewController.landscapeMode = RDImageScrollViewResizeModeAspectFit;
 	viewController.loadAsync = YES;
-	viewController.preloadCount = 3;
+	viewController.preloadCount = kPreloadCount;
 	viewController.hidesBottomBarWhenPushed = YES;
 	[self.navigationController pushViewController:viewController animated:YES];
 }
 
+- (IBAction)showScrollView:(id)sender
+{
+	CGRect frame = self.view.bounds;
+	RDImageViewerController *viewController = [[RDImageViewerController alloc] initWithViewHandler:^UIView *(NSInteger pageIndex, UIView *reusedView) {
+		if (reusedView == nil) {
+			UIScrollView *view = [[UIScrollView alloc] initWithFrame:frame];
+			UILabel *label = [[UILabel alloc] initWithFrame:frame];
+			label.textAlignment = NSTextAlignmentCenter;
+			label.font = [UIFont systemFontOfSize:50];
+			label.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+			label.tag = 100;
+			[view addSubview:label];
+			view.backgroundColor = [UIColor whiteColor];
+			view.contentSize = CGSizeMake(1000, 1000);
+			reusedView = view;
+		}
+		
+		UILabel *label = (UILabel *)[reusedView viewWithTag:100];
+		label.text = [NSString stringWithFormat:@"%ld", (long)pageIndex];
+		
+		return reusedView;
+	} reuseIdentifier:^NSString *(NSInteger pageIndex) {
+		return @"view";
+	} numberOfImages:10 direction:self.directionSwitch.on ? RDPagingViewDirectionLeft : RDPagingViewDirectionRight];
+	viewController.showSlider = sliderSwitch.on;
+	viewController.showPageNumberHud = hudSwitch.on;
+	viewController.landscapeMode = RDImageScrollViewResizeModeDisplayFit;
+	viewController.preloadCount = kPreloadCount;
+	viewController.hidesBottomBarWhenPushed = YES;
+	[self.navigationController pushViewController:viewController animated:YES];
+}
 #pragma mark -
 
 @end

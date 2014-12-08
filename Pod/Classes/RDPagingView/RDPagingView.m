@@ -121,7 +121,7 @@ static NSInteger const kPreloadDefaultCount = 1;
 	return trueIndex;
 }
 
-- (void)setViewPrepared:(UIView *)view reuseIdentifier:(NSString *)identifier
+- (void)setViewAsPrepared:(UIView *)view reuseIdentifier:(NSString *)identifier
 {
 	if (view) {
 		[view removeFromSuperview];
@@ -130,7 +130,7 @@ static NSInteger const kPreloadDefaultCount = 1;
 	}
 }
 
-- (void)setViewUsing:(UIView *)view reuseIdentifier:(NSString *)identifier
+- (void)setViewAsUsing:(UIView *)view reuseIdentifier:(NSString *)identifier
 {
 	if (view) {
 		[queueDictionary_[identifier] removeObject:view];
@@ -153,7 +153,7 @@ static NSInteger const kPreloadDefaultCount = 1;
 {
 	CGSize newSize = frame.size;
 	if (flag_.pagingViewWillChangeViewSize) {
-		[self.pagingDelegate pagingView:self willChangeViewSize:CGSizeMake(newSize.width, newSize.height) duration:duration visibleViews:[usingViews_ allObjects]];
+		[self.pagingDelegate pagingView:self willChangeViewSize:newSize duration:duration visibleViews:[usingViews_ allObjects]];
 	}
 	NSInteger currentPageIndex = [self indexInScrollView:self.currentPageIndex];
 	self.contentSize = CGSizeMake(self.numberOfPages * newSize.width, newSize.height);
@@ -191,7 +191,7 @@ static NSInteger const kPreloadDefaultCount = 1;
 	[usingViews_ enumerateObjectsUsingBlock:^(id obj, BOOL *stop) {
 		UIView *view = obj;
 		if (view.indexOfPage < minimumIndex || view.indexOfPage > maximumIndex) {
-			[self setViewPrepared:view reuseIdentifier:[self.pagingDelegate paginView:self reuseIdentifierForIndex:view.indexOfPage]];
+			[self setViewAsPrepared:view reuseIdentifier:[self.pagingDelegate paginView:self reuseIdentifierForIndex:view.indexOfPage]];
 		}
 	}];
 	
@@ -218,7 +218,7 @@ static NSInteger const kPreloadDefaultCount = 1;
 	UIView *view = [self.pagingDelegate pagingView:self viewForIndex:index];
 	view.frame = CGRectMake([self indexInScrollView:index] * CGRectGetWidth(self.frame), 0, CGRectGetWidth(self.frame) ,CGRectGetHeight(self.frame));
 	[view setIndexOfPage:index];
-	[self setViewUsing:view reuseIdentifier:[self.pagingDelegate paginView:self reuseIdentifierForIndex:index]];
+	[self setViewAsUsing:view reuseIdentifier:[self.pagingDelegate paginView:self reuseIdentifierForIndex:index]];
 	[self addSubview:view];
 }
 
