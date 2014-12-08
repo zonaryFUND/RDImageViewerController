@@ -12,15 +12,15 @@
 @class RDImageViewerController;
 @protocol RDImageViewerControllerDelegate <NSObject>
 @optional
-- (void)imageViewerController:(RDImageViewerController *)viewController willChangeIndexTo:(NSInteger)index;
+- (void)imageViewerController:(RDImageViewerController*)viewController willChangeIndexTo:(NSInteger)index;
 
 @end
 
 @interface RDImageViewerController : UIViewController <RDPagingViewDelegate, UIScrollViewDelegate>
 
-extern NSString *const RDImageViewerControllerReuseIdentifierImage;
+extern NSString* const RDImageViewerControllerReuseIdentifierImage;
 
-@property (nonatomic, assign) id<RDImageViewerControllerDelegate>delegate;
+@property (nonatomic, assign) id<RDImageViewerControllerDelegate> delegate;
 @property (nonatomic) NSUInteger preloadCount;
 @property (nonatomic, assign) NSInteger pageIndex;
 @property (nonatomic, assign) BOOL pagingEnabled;
@@ -29,15 +29,18 @@ extern NSString *const RDImageViewerControllerReuseIdentifierImage;
 @property (nonatomic, assign) BOOL showPageNumberHud;
 @property (nonatomic, assign) RDImageScrollViewResizeMode landscapeMode;
 @property (nonatomic, assign) CGFloat maximumZoomScale;
-@property (nonatomic, copy) UIColor *pageSliderMaximumTrackTintColor;
-@property (nonatomic, copy) UIColor *pageSliderMinimumTrackTintColor;
-@property (nonatomic, copy) UIImage *(^imageHandler)(NSInteger pageIndex);
-@property (nonatomic, copy) UIView *(^viewHandler)(NSInteger pageIndex, UIView *reusedView);
-@property (nonatomic, copy) NSString *(^reuseIdentifierHandler)(NSInteger pageIndex);
+@property (nonatomic, copy) UIColor* pageSliderMaximumTrackTintColor;
+@property (nonatomic, copy) UIColor* pageSliderMinimumTrackTintColor;
+@property (nonatomic, copy) UIImage* (^imageHandler)(NSInteger pageIndex);
+@property (nonatomic, copy) UIView* (^viewHandler)(NSInteger pageIndex, UIView* reusedView);
+@property (nonatomic, copy) NSString* (^reuseIdentifierHandler)(NSInteger pageIndex);
+@property (nonatomic, readonly) UISlider* pageSlider;
+@property (nonatomic, readonly) NSInteger numberOfPages;
 
 - (instancetype)initWithNumberOfPages:(NSInteger)num direction:(RDPagingViewForwardDirection)direction;
-- (instancetype)initWithImageHandler:(UIImage *(^)(NSInteger pageIndex))imageHandler numberOfImages:(NSInteger)pageCount direction:(RDPagingViewForwardDirection)direction;
-- (instancetype)initWithViewHandler:(UIView *(^)(NSInteger pageIndex, UIView *reusedView))viewHandler reuseIdentifier:(NSString *(^)(NSInteger pageIndex))reuseIdentifierHandler numberOfImages:(NSInteger)pageCount direction:(RDPagingViewForwardDirection)direction;
+- (instancetype)initWithImageHandler:(UIImage* (^)(NSInteger pageIndex))imageHandler numberOfImages:(NSInteger)pageCount direction:(RDPagingViewForwardDirection)direction;
+- (instancetype)initWithViewHandler:(UIView* (^)(NSInteger pageIndex, UIView* reusedView))viewHandler reuseIdentifier:(NSString* (^)(NSInteger pageIndex))reuseIdentifierHandler numberOfImages:(NSInteger)pageCount direction:(RDPagingViewForwardDirection)direction;
 - (void)reloadViewAtIndex:(NSInteger)index;
+- (void)setBarHiddenUsingTapGesture;
 
 @end
